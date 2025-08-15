@@ -21,21 +21,22 @@ if [ ! -d "$TARGET_DIR" ]; then
   exit 1
 fi
 
-# 指定されたフォルダに移動
-cd "$TARGET_DIR"
+echo "フォルダ「$(basename "$TARGET_DIR")」とそのサブフォルダ内のファイルを処理します..."
 
-echo "フォルダ「$(basename "$TARGET_DIR")」内のファイルを処理します..."
-
-# フォルダ内のファイルに対してループ処理
-for ITEM in *
+# findコマンドで対象フォルダ内のファイルを再帰的に検索し、ループ処理する
+find "$TARGET_DIR" -type f | while IFS= read -r FILEPATH
 do
-  if [ -f "$ITEM" ]; then
-    if [[ "$ITEM" != "$PREFIX"* ]]; then
-      mv "$ITEM" "${PREFIX}${ITEM}"
-      echo "リネーム: $ITEM -> ${PREFIX}${ITEM}"
-    else
-      echo "スキップ: $ITEM"
-    fi
+  # ファイル名とディレクトリのパスを取得
+  DIRNAME=$(dirname "$FILEPATH")
+  BASENAME=$(basename "$FILEPATH")
+
+  # ファイル名の先頭にプレフィックスがまだ付いていないかチェック
+  if [[ "$BASENAME" != "$PREFIX"* ]]; then
+    # mvコマンドでファイル名を変更
+    mv "$FILEPATH" "$DIRNAME/${PREFIX}${BASENAME}"
+    echo "リネーム: $BASENAME -> ${PREFIX}${BASENAME}"
+  else
+    echo "スキップ: $BASENAME （既にプレフィックスが付いています）"
   fi
 done
 
